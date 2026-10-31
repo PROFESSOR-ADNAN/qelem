@@ -10,7 +10,7 @@ jobs:
     environment: staging
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Deploy to Staging VPS via SSH
         run: |

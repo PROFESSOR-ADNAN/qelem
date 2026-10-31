@@ -1,0 +1,53 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Shared Package
+        run: npm run build --workspace=packages/shared
+
+      - name: TypeScript Typecheck
+        run: |
+          npm run typecheck --workspace=packages/shared
+          npm run typecheck --workspace=server
+          npm run typecheck --workspace=worker
+          npm run typecheck --workspace=web
+
+      - name: Run Test Suite (Unit, Property, Media Attacks)
+        run: npx vitest run
+
+      - name: Build All Workspaces (Server, Worker, Web)
+        run: |
+          npm run build --workspace=server
+          npm run build --workspace=worker
+          npm run build --workspace=web
+
+      - name: Validate Docker Compose Configurations
+        run: |
+          docker compose -f docker/compose.yaml config
+          docker compose -f docker/compose.prod.yaml config

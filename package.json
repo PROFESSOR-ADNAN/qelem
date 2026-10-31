@@ -1,0 +1,26 @@
+{
+  "name": "qelem-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Qelem: Devlog and learning-in-public platform for Ethiopian CS students",
+  "workspaces": [
+    "packages/shared",
+    "server",
+    "worker",
+    "web"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace=packages/shared && npm run build --workspace=server && npm run build --workspace=worker && npm run build --workspace=web",
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "seed": "npm run seed --workspace=server",
+    "seed:load": "npm run seed:load --workspace=server",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "fast-check": "^4.10.2",
+    "typescript": "^5.7.2",
+    "vitest": "^5.0.5"
+  }
+}

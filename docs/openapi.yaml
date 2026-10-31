@@ -1,0 +1,126 @@
+openapi: 3.1.0
+info:
+  title: Qelem API
+  description: Production-grade REST API and SSE stream for Qelem (ቀለም) devlog platform
+  version: 1.0.0
+servers:
+  - url: /api/v1
+    description: Current API Version
+
+paths:
+  /auth/register:
+    post:
+      summary: Register a new user account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, username, password, displayName]
+              properties:
+                email: { type: string, format: email }
+                username: { type: string, pattern: '^[a-z0-9_]{3,20}$' }
+                password: { type: string, minLength: 8 }
+                displayName: { type: string, minLength: 1, maxLength: 50 }
+                cohortId: { type: string }
+      responses:
+        '201':
+          description: Account created successfully
+        '400':
+          description: Validation error
+        '409':
+          description: Username or email already exists
+
+  /auth/login:
+    post:
+      summary: Authenticate with username or email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [login, password]
+              properties:
+                login: { type: string }
+                password: { type: string }
+      responses:
+        '200':
+          description: Authentication successful
+        '401':
+          description: Invalid email or password
+        '429':
+          description: Account temporarily locked out
+
+  /posts:
+    post:
+      summary: Create a new devlog post (idempotent)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [clientPostId, text]
+              properties:
+                clientPostId: { type: string, format: uuid }
+                text: { type: string, maxLength: 2000 }
+                code:
+                  type: object
+                  properties:
+                    lang: { type: string }
+                    body: { type: string, maxLength: 3000 }
+                mediaIds:
+                  type: array
+                  items: { type: string }
+                  maxItems: 4
+                tags:
+                  type: array
+                  items: { type: string }
+                  maxItems: 5
+                mentions:
+                  type: array
+                  items: { type: string }
+                  maxItems: 5
+      responses:
+        '201':
+          description: Post created or published
+        '409':
+          description: Duplicate content detected within 24 hours
+
+  /feed/home:
+    get:
+      summary: Get authenticated home feed (hybrid fan-out merge)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: cursor
+          in: query
+          required: false
+          schema: { type: string }
+        - name: limit
+          in: query
+          required: false
+          schema: { type: integer, default: 20, maximum: 50 }
+      responses:
+        '200':
+          description: Feed items with signed HMAC nextCursor
+
+  /stream:
+    get:
+      summary: Server-Sent Events live stream for badges and alerts
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: text/event-stream stream with heartbeat
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

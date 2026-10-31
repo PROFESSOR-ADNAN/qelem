@@ -1,0 +1,19 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - "alerts.yml"
+
+scrape_configs:
+  - job_name: "qelem-api"
+    static_configs:
+      - targets: ["api1:5000", "api2:5000"]
+
+  - job_name: "qelem-valkey"
+    static_configs:
+      - targets: ["valkey:6379"]
+
+  - job_name: "qelem-mongodb"
+    static_configs:
+      - targets: ["mongodb:27017"]

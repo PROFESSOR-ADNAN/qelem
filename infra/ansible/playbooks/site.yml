@@ -1,0 +1,53 @@
+---
+- name: Qelem Single VPS Baseline Hardening & Setup
+  hosts: all
+  become: true
+  vars:
+    app_user: appuser
+    app_dir: /opt/qelem
+
+  tasks:
+    - name: Update apt cache and install core dependencies
+      apt:
+        update_cache: yes
+        upgrade: dist
+        pkg:
+          - curl
+          - ufw
+          - fail2ban
+          - unattended-upgrades
+          - docker.io
+          - docker-compose-v2
+        state: present
+
+    - name: Configure UFW firewall rules
+      ufw:
+        rule: allow
+        port: "{{ item }}"
+        proto: tcp
+      loop:
+        - 80
+        - 443
+
+    - name: Enable UFW firewall and default deny incoming
+      ufw:
+        state: enabled
+        default: deny
+
+    - name: Apply Linux kernel sysctl hardening
+      sysctl:
+        name: "{{ item.key }}"
+        value: "{{ item.value }}"
+        state: present
+        reload: yes
+      loop:
+        - { key: 'net.ipv4.tcp_syncookies', value: '1' }
+        - { key: 'net.ipv4.conf.all.rp_filter', value: '1' }
+        - { key: 'fs.protected_hardlinks', value: '1' }
+        - { key: 'fs.protected_symlinks', value: '1' }
+
+    - name: Ensure unattended security upgrades are active
+      systemd:
+        name: unattended-upgrades
+        enabled: yes
+        state: started

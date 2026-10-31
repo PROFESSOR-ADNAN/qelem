@@ -1,0 +1,41 @@
+# Multi-stage Dockerfile for Qelem BullMQ Worker
+FROM node:22-alpine AS builder
+
+WORKDIR /app
+
+RUN apk add --no-cache python3 make g++ vips-dev
+
+COPY package.json tsconfig.json ./
+COPY packages/shared/package.json ./packages/shared/
+COPY worker/package.json ./worker/
+
+RUN npm ci
+
+COPY packages/shared ./packages/shared
+COPY worker ./worker
+
+RUN npm run build --workspace=packages/shared
+RUN npm run build --workspace=worker
+
+FROM node:22-alpine AS runner
+
+WORKDIR /app
+ENV NODE_ENV=production
+
+# libvips runtime dependencies for Sharp
+RUN apk add --no-cache vips
+
+RUN addgroup -g 10001 -S appgroup && adduser -u 10001 -S appuser -G appgroup
+
+COPY package.json ./
+COPY packages/shared/package.json ./packages/shared/
+COPY worker/package.json ./worker/
+
+RUN npm ci --omit=dev
+
+COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
+COPY --from=builder /app/worker/dist ./worker/dist
+
+USER appuser
+
+CMD ["node", "worker/dist/index.js"]

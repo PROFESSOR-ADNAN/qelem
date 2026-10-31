@@ -1,0 +1,7 @@
+Contact: mailto:security@example.com
+Expires: 2027-12-31T23:59:59.000Z
+Preferred-Languages: en, am
+Canonical: https://qelem.example.com/.well-known/security.txt
+Policy: https://github.com/PROFESSOR-ADNAN/qelem/blob/main/SECURITY.md
+Acknowledgments: https://qelem.example.com/security/acknowledgments
+Hiring: https://qelem.example.com/about/careers

@@ -1,0 +1,62 @@
+{
+  "brand": "ቀለም",
+  "tagline": "የኢትዮጵያ ኮምፒውተር ሳይንስ ተማሪዎች እና ገንቢዎች የዕለት ተዕለት ልምድ ማካፈያ",
+  "nav": {
+    "home": "መነሻ",
+    "explore": "አስስ (ትሬንዲንግ)",
+    "compose": "ልምድ አጋራ",
+    "bookmarks": "የተቀመጡ",
+    "notifications": "ማሳወቂያዎች",
+    "profile": "መገለጫ",
+    "settings": "ቅንብሮች",
+    "admin": "አስተዳዳሪ",
+    "logout": "ውጣ",
+    "login": "ግባ",
+    "register": "ተመዝገብ"
+  },
+  "feed": {
+    "title": "የክትትል ገፅ",
+    "newPostsPill": "{{count}} አዳዲስ ልጥፎች አሉ",
+    "emptyHomeTitle": "ገጽዎ ባዶ ነው",
+    "emptyHomeDesc": "ልጥፎቻቸውን ለማየት የክፍል ጓደኞችዎን፣ አማካሪዎችን ወይም ከዩኒቨርሲቲዎ ያሉ ተማሪዎችን ይከተሉ።",
+    "exploreCohorts": "ተማሪዎችን ፈልግ",
+    "endOfFeed": "ሁሉንም አይተዋል! (የቅርብ ጊዜ 600 ልጥፎች)",
+    "like": "ወደድኩት",
+    "liked": "ተወዷል",
+    "comment": "አስተያየት",
+    "bookmark": "አስቀምጥ",
+    "bookmarked": "ተቀምጧል",
+    "share": "አጋራ",
+    "copyLink": "ሊንኩን ቅዳ",
+    "linkCopied": "ሊንኩ ተቀድቷል!"
+  },
+  "composer": {
+    "title": "የዛሬውን ስራዎን ወይም የተማሩትን ያካፍሉ",
+    "placeholder": "ዛሬ ምን ሰሩ ወይም ምን ተማሩ? (ጓደኞችን ለመጥቀስ @፣ ታጎችን ለመጠቀም # ይጠቀሙ)",
+    "codeSnippet": "የኮድ ክፍል አክል",
+    "codePlaceholder": "// ኮድዎን እዚህ ይለጥፉ...",
+    "language": "ቋንቋ",
+    "addImages": "ፎቶ ጨምር (እስከ 4)",
+    "publish": "አጋራ",
+    "publishing": "በማጋራት ላይ...",
+    "draftSaved": "ረቂቅ በስልክዎ ተቀምጧል",
+    "queuedOffline": "ኢንተርኔት ሲመለስ በራሱ ይላካል።",
+    "tagsPlaceholder": "ለምሳሌ algorithms, backend, react"
+  },
+  "explore": {
+    "title": "ተወዳጅ ልጥፎች",
+    "filterByCohort": "በትምህርት ክፍል ፈልግ",
+    "allCohorts": "ሁሉም ዩኒቨርሲቲዎችና ቡትካምፖች",
+    "filterByTag": "በታግ ፈልግ",
+    "noResults": "ምንም ልጥፍ አልተገኘም"
+  },
+  "settings": {
+    "title": "ቅንብሮች",
+    "language": "Language / ቋንቋ",
+    "dataSaver": "የዳታ ቁጠባ ዘዴ (Data Saver)",
+    "dataSaverDesc": "ዳታ ለመቆጠብ ፎቶዎችን በቀጥታ ከመጫን ይቆጠባል፤ ፎቶውን ሲነኩት ብቻ ይከፍታል።",
+    "exportData": "መረጃዬን አውርድ",
+    "deleteAccount": "አካውንቴ ይሰረዝ",
+    "deleteDesc": "አካውንትዎ ለ30 ቀናት ተደብቆ ይቆያል፤ ከዚያም ሙሉ በሙሉ ይሰረዛል።"
+  }
+}

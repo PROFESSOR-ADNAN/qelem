@@ -1,0 +1,62 @@
+{
+  "brand": "Qelem",
+  "tagline": "Devlog & Learning in Public for Ethiopian CS Students",
+  "nav": {
+    "home": "Home",
+    "explore": "Explore",
+    "compose": "Post Devlog",
+    "bookmarks": "Bookmarks",
+    "notifications": "Notifications",
+    "profile": "Profile",
+    "settings": "Settings",
+    "admin": "Admin Queue",
+    "logout": "Log Out",
+    "login": "Log In",
+    "register": "Sign Up"
+  },
+  "feed": {
+    "title": "Home Feed",
+    "newPostsPill": "{{count}} new devlogs available",
+    "emptyHomeTitle": "Your feed is quiet",
+    "emptyHomeDesc": "Follow peers, mentors, or students from your university department to see their devlogs.",
+    "exploreCohorts": "Explore Cohorts",
+    "endOfFeed": "You're all caught up! (Showing 600 most recent devlogs)",
+    "like": "Like",
+    "liked": "Liked",
+    "comment": "Comment",
+    "bookmark": "Save",
+    "bookmarked": "Saved",
+    "share": "Share",
+    "copyLink": "Copy link",
+    "linkCopied": "Link copied to clipboard!"
+  },
+  "composer": {
+    "title": "Share today's build or lesson",
+    "placeholder": "What did you build or learn today? (Use @ to mention peers, #tags to categorize)",
+    "codeSnippet": "Add Code Snippet",
+    "codePlaceholder": "// Paste snippet here...",
+    "language": "Language",
+    "addImages": "Upload Screenshots (Max 4)",
+    "publish": "Publish Devlog",
+    "publishing": "Publishing...",
+    "draftSaved": "Draft saved offline",
+    "queuedOffline": "Saved to offline queue. Will send when internet returns.",
+    "tagsPlaceholder": "e.g. algorithms, backend, react"
+  },
+  "explore": {
+    "title": "Trending Devlogs",
+    "filterByCohort": "Filter by Cohort",
+    "allCohorts": "All Universities & Bootcamps",
+    "filterByTag": "Filter by Tag",
+    "noResults": "No devlogs found for this filter"
+  },
+  "settings": {
+    "title": "Settings & Preferences",
+    "language": "Language / ቋንቋ",
+    "dataSaver": "Data Saver Mode (Low 3G / Mobile Data)",
+    "dataSaverDesc": "Disables automatic image loading; click image placeholders to fetch high-res variants.",
+    "exportData": "Export My Account Data",
+    "deleteAccount": "Request Account Deletion",
+    "deleteDesc": "Your account will enter a 30-day grace period where content is hidden before permanent removal."
+  }
+}

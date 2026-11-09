@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { apiFetch, setAccessToken, getAccessToken } from '../api/client.js';
+import { apiFetch, setAccessToken, getAccessToken, API_BASE } from '../api/client.js';
 
 interface User {
   id: string;
@@ -61,10 +61,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!user) return;
 
     let eventSource: EventSource | null = null;
-    let pollInterval: NodeJS.Timeout | null = null;
+    let pollInterval: any = null;
 
     try {
-      eventSource = new EventSource('/api/v1/stream');
+      const streamUrl = `${API_BASE}/api/v1/stream?token=${getAccessToken() || ''}`;
+      eventSource = new EventSource(streamUrl, { withCredentials: true });
 
       eventSource.addEventListener('unread', (e: MessageEvent) => {
         try {
@@ -101,20 +102,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [user]);
 
   const login = async (creds: any) => {
-    const res = await apiFetch<{ user: User; accessToken: string }>('/auth/login', {
+    const res = await apiFetch<{ user: User; accessToken: string; refreshToken?: string }>('/auth/login', {
       method: 'POST',
       body: JSON.stringify(creds)
     });
-    setAccessToken(res.accessToken);
+    setAccessToken(res.accessToken, res.refreshToken);
     setUser(res.user);
   };
 
   const register = async (data: any) => {
-    const res = await apiFetch<{ user: User; accessToken: string }>('/auth/register', {
+    const res = await apiFetch<{ user: User; accessToken: string; refreshToken?: string }>('/auth/register', {
       method: 'POST',
       body: JSON.stringify(data)
     });
-    setAccessToken(res.accessToken);
+    setAccessToken(res.accessToken, res.refreshToken);
     setUser(res.user);
   };
 
@@ -122,7 +123,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await apiFetch('/auth/logout', { method: 'POST' });
     } catch {}
-    setAccessToken(null);
+    setAccessToken(null, null);
     setUser(null);
   };
 

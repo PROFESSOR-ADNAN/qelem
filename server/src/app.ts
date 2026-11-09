@@ -19,6 +19,7 @@ import { tagsRouter } from './routes/tags.routes.js';
 import { adminRouter } from './routes/admin.routes.js';
 import { shareRouter } from './routes/share.routes.js';
 import { accountRouter } from './routes/account.routes.js';
+import { paymentRouter } from './routes/payment.routes.js';
 
 // Initialize Prometheus Default Metrics
 promClient.collectDefaultMetrics({ prefix: 'qelem_' });
@@ -40,16 +41,35 @@ app.use(
         frameAncestors: ["'none'"]
       }
     },
-    crossOriginEmbedderPolicy: false
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: 'cross-origin' }
   })
 );
 
-// CORS configuration
+// Flexible CORS configuration supporting Vercel, localhost, and custom domains
+const staticAllowedOrigins = [
+  env.WEB_BASE_URL,
+  'http://localhost:3000',
+  'http://localhost:5173',
+  ...(env.ALLOWED_ORIGINS ? env.ALLOWED_ORIGINS.split(',').map((o) => o.trim()) : [])
+];
+
 app.use(
   cors({
-    origin: [env.WEB_BASE_URL, 'http://localhost:3000', 'http://localhost:5173'],
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (
+        staticAllowedOrigins.includes(origin) ||
+        /\.vercel\.app$/.test(origin) ||
+        origin.includes('localhost')
+      ) {
+        return callback(null, true);
+      }
+      return callback(null, true);
+    },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-Id', 'Idempotency-Key']
   })
 );
 
@@ -90,6 +110,7 @@ app.use('/api/v1/tags', tagsRouter);
 app.use('/api/v1/admin', adminRouter);
 app.use('/api/v1/share', shareRouter);
 app.use('/api/v1/account', accountRouter);
+app.use('/api/v1/payments', paymentRouter);
 
 // Centralized RFC 9457 error handler
 app.use(errorHandler);

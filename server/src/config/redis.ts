@@ -1,16 +1,21 @@
-import { Redis } from 'ioredis';
+import { Redis, RedisOptions } from 'ioredis';
 import { env } from './env.js';
 import { logger } from '../utils/logger.js';
 
-export const redis = new Redis(env.REDIS_URL, {
+const isTls = env.REDIS_URL.startsWith('rediss://');
+
+const baseOptions: RedisOptions = {
   maxRetriesPerRequest: null,
   enableReadyCheck: true,
   lazyConnect: true,
+  ...(isTls ? { tls: { rejectUnauthorized: false } } : {}),
   retryStrategy(times) {
     const delay = Math.min(times * 100, 3000);
     return delay;
   }
-});
+};
+
+export const redis = new Redis(env.REDIS_URL, baseOptions);
 
 redis.on('connect', () => {
   logger.info({ msg: 'Redis/Valkey connected' });
@@ -21,8 +26,8 @@ redis.on('error', (err) => {
 });
 
 // Create a dedicated publisher and subscriber connection for Pub/Sub and SSE
-export const redisPub = new Redis(env.REDIS_URL, { maxRetriesPerRequest: null, lazyConnect: true });
-export const redisSub = new Redis(env.REDIS_URL, { maxRetriesPerRequest: null, lazyConnect: true });
+export const redisPub = new Redis(env.REDIS_URL, { ...baseOptions });
+export const redisSub = new Redis(env.REDIS_URL, { ...baseOptions });
 
 export async function connectRedis(): Promise<void> {
   await Promise.all([redis.connect(), redisPub.connect(), redisSub.connect()]);

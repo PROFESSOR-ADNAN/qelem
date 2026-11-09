@@ -15,6 +15,19 @@ import { env } from '../config/env.js';
 const REFRESH_COOKIE_NAME = 'qelem_refresh_token';
 const COOKIE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 
+const getCookieOptions = () => {
+  const sameSite: 'none' | 'lax' | 'strict' =
+    env.COOKIE_SAME_SITE || (env.NODE_ENV === 'production' ? 'none' : 'lax');
+  const secure = env.NODE_ENV === 'production' || sameSite === 'none';
+  return {
+    httpOnly: true,
+    secure,
+    sameSite,
+    maxAge: COOKIE_MAX_AGE_MS,
+    path: '/'
+  };
+};
+
 export class AuthController {
   static async register(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
@@ -58,13 +71,7 @@ export class AuthController {
         req.ip
       );
 
-      res.cookie(REFRESH_COOKIE_NAME, refreshToken, {
-        httpOnly: true,
-        secure: env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: COOKIE_MAX_AGE_MS,
-        path: '/api/v1/auth'
-      });
+      res.cookie(REFRESH_COOKIE_NAME, refreshToken, getCookieOptions());
 
       res.status(201).json({
         user: {
@@ -76,7 +83,8 @@ export class AuthController {
           cohortId: user.cohortId,
           isEmailVerified: user.isEmailVerified
         },
-        accessToken
+        accessToken,
+        refreshToken
       });
     } catch (err) {
       next(err);
@@ -129,13 +137,7 @@ export class AuthController {
         req.ip
       );
 
-      res.cookie(REFRESH_COOKIE_NAME, refreshToken, {
-        httpOnly: true,
-        secure: env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: COOKIE_MAX_AGE_MS,
-        path: '/api/v1/auth'
-      });
+      res.cookie(REFRESH_COOKIE_NAME, refreshToken, getCookieOptions());
 
       res.status(200).json({
         user: {
@@ -148,7 +150,8 @@ export class AuthController {
           isEmailVerified: user.isEmailVerified,
           mfaEnabled: user.mfaEnabled
         },
-        accessToken
+        accessToken,
+        refreshToken
       });
     } catch (err) {
       next(err);
@@ -168,15 +171,9 @@ export class AuthController {
         req.ip
       );
 
-      res.cookie(REFRESH_COOKIE_NAME, newRefreshToken, {
-        httpOnly: true,
-        secure: env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: COOKIE_MAX_AGE_MS,
-        path: '/api/v1/auth'
-      });
+      res.cookie(REFRESH_COOKIE_NAME, newRefreshToken, getCookieOptions());
 
-      res.status(200).json({ accessToken });
+      res.status(200).json({ accessToken, refreshToken: newRefreshToken });
     } catch (err) {
       next(err);
     }

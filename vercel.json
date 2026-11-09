@@ -6,14 +6,6 @@
   "cleanUrls": true,
   "rewrites": [
     {
-      "source": "/api/v1/stream",
-      "destination": "https://${API_BACKEND_HOST:-api.example.com}/api/v1/stream"
-    },
-    {
-      "source": "/api/:path*",
-      "destination": "https://${API_BACKEND_HOST:-api.example.com}/api/:path*"
-    },
-    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

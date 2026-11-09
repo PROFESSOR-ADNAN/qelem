@@ -21,12 +21,18 @@ declare global {
 }
 
 export async function requireAuth(req: Request, _res: Response, next: NextFunction): Promise<void> {
+  let token: string | undefined;
+
   const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return next(new AppError(401, 'Authentication token required'));
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.substring(7);
+  } else if (req.query?.token && typeof req.query.token === 'string') {
+    token = req.query.token;
   }
 
-  const token = authHeader.substring(7);
+  if (!token) {
+    return next(new AppError(401, 'Authentication token required'));
+  }
 
   try {
     const payload = jwt.verify(token, env.JWT_ACCESS_SECRET) as { sub: string; role: UserRole; isVerified: boolean };

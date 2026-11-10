@@ -46,6 +46,7 @@ export class EmailService {
       try {
         await transporter.sendMail({
           from: env.EMAIL_FROM,
+          replyTo: 'iam.professor.adnan@gmail.com',
           to: email,
           subject,
           html: htmlBody

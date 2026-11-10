@@ -36,7 +36,7 @@ const EnvSchema = z.object({
   SMTP_PORT: z.coerce.number().default(587),
   SMTP_USER: z.string().optional(),
   SMTP_PASS: z.string().optional(),
-  EMAIL_FROM: z.string().default('Qelem <abdullahservantofallah1234@gmail.com>'),
+  EMAIL_FROM: z.string().default('Qelem <iam.professor.adnan@gmail.com>'),
   EMAIL_DAILY_BUDGET: z.coerce.number().default(90),
 
   // SMS Notifications Gateway

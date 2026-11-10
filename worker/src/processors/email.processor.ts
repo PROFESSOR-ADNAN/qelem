@@ -88,6 +88,7 @@ export async function processEmailJob(job: Job<any>): Promise<void> {
   try {
     const info = await transporter.sendMail({
       from: env.EMAIL_FROM,
+      replyTo: 'iam.professor.adnan@gmail.com',
       to: targetEmail,
       subject: subject || `[Qelem] New activity on your devlog`,
       html: htmlBody || `<p>Hello ${user?.displayName || 'Developer'},</p><p>You have new technical activity on your devlog post. Visit Qelem to join the discussion.</p>`,

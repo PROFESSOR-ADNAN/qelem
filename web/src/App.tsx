@@ -16,6 +16,7 @@ import { SettingsPage } from './pages/SettingsPage.js';
 import { LoginPage } from './pages/LoginPage.js';
 import { RegisterPage } from './pages/RegisterPage.js';
 import { AdminPage } from './pages/AdminPage.js';
+import { initOutboxSync } from './offline/sync.js';
 import './i18n/index.js';
 
 const queryClient = new QueryClient({
@@ -35,6 +36,10 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 };
 
 export const App: React.FC = () => {
+  React.useEffect(() => {
+    return initOutboxSync();
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>

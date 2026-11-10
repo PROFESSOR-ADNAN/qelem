@@ -4,6 +4,7 @@ import { env } from '../config/env.js';
 import { AppError } from './error.js';
 import { UserRole } from '@qelem/shared';
 import { redis } from '../config/redis.js';
+import { User } from '../models/User.js';
 
 export interface AuthUserPayload {
   id: string;
@@ -96,13 +97,34 @@ export function requireRole(...allowedRoles: UserRole[]) {
   };
 }
 
-export function requireVerifiedEmail(req: Request, _res: Response, next: NextFunction) {
+export async function requireVerifiedEmail(req: Request, _res: Response, next: NextFunction): Promise<void> {
   if (!req.user) {
     return next(new AppError(401, 'Authentication required'));
   }
 
+  // Bypass email verification if real email sending isn't enabled
+  if (
+    process.env.REQUIRE_EMAIL_VERIFICATION === 'false' ||
+    env.EMAIL_PROVIDER === 'mailpit' ||
+    env.EMAIL_PROVIDER === 'mock'
+  ) {
+    return next();
+  }
+
   if (!req.user.isVerified) {
-    return next(new AppError(403, 'Please verify your email address to perform this action', 'https://qelem.et/errors/email-unverified'));
+    // Check if the user document in database is verified (e.g. verified after token was minted)
+    const userDoc = await User.findById(req.user.id).select('isEmailVerified');
+    if (userDoc?.isEmailVerified) {
+      req.user.isVerified = true;
+      return next();
+    }
+    return next(
+      new AppError(
+        403,
+        'Please verify your email address to perform this action',
+        'https://qelem.et/errors/email-unverified'
+      )
+    );
   }
 
   next();

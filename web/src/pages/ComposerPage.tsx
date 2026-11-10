@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CODE_LANGUAGES, CodeLanguage } from '@qelem/shared';
 import { offlineDB } from '../offline/db.js';
-import { apiFetch } from '../api/client.js';
+import { apiFetch, ApiError } from '../api/client.js';
 import { Code, Image as ImageIcon, Send, X, Save, AlertCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -147,7 +147,12 @@ export const ComposerPage: React.FC = () => {
 
       navigate('/');
     } catch (err: unknown) {
-      // Offline fallback: save to outbox queue
+      if (err instanceof ApiError) {
+        setStatusMessage(err.message || 'Failed to publish post');
+        return;
+      }
+
+      // Offline fallback: save to outbox queue only on genuine network failure
       const payload = {
         clientPostId,
         text,

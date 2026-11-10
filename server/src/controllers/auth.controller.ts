@@ -52,6 +52,12 @@ export class AuthController {
       const emailVerificationToken = randomBytes(32).toString('hex');
       const emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
+      const shouldAutoVerify =
+        process.env.AUTO_VERIFY_EMAIL === 'true' ||
+        env.EMAIL_PROVIDER === 'mailpit' ||
+        env.EMAIL_PROVIDER === 'mock' ||
+        process.env.REQUIRE_EMAIL_VERIFICATION === 'false';
+
       const user = await User.create({
         username: input.username,
         usernameLower: input.username.toLowerCase(),
@@ -62,7 +68,7 @@ export class AuthController {
         cohortId: input.cohortId || null,
         emailVerificationToken,
         emailVerificationExpires,
-        isEmailVerified: false
+        isEmailVerified: shouldAutoVerify
       });
 
       const { accessToken, refreshToken } = await AuthService.createSession(

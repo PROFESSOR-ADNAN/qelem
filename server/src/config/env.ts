@@ -60,6 +60,9 @@ if (!process.env.MONGODB_URI && process.env.MONGO_URI) {
 if (!process.env.REDIS_URL && process.env.REDIS_URI) {
   process.env.REDIS_URL = process.env.REDIS_URI;
 }
+if (!process.env.ALLOWED_ORIGINS && process.env.CORS_ORIGIN) {
+  process.env.ALLOWED_ORIGINS = process.env.CORS_ORIGIN;
+}
 
 const parsed = EnvSchema.safeParse(process.env);
 

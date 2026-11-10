@@ -7,7 +7,7 @@ services:
     runtime: node
     plan: starter
     region: frankfurt
-    buildCommand: npm install && npm run build --workspace=packages/shared && npm run build --workspace=server
+    buildCommand: npm install --include=dev && npm run build --workspace=packages/shared && npm run build --workspace=server && npm run build --workspace=worker
     startCommand: node server/dist/index.js
     healthCheckPath: /healthz
     envVars:

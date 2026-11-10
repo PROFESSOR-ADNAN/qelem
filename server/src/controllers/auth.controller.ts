@@ -12,6 +12,7 @@ import { AppError } from '../middleware/error.js';
 import { randomBytes } from 'node:crypto';
 import { env } from '../config/env.js';
 import { EmailService } from '../services/email.service.js';
+import { logger } from '../utils/logger.js';
 
 const REFRESH_COOKIE_NAME = 'qelem_refresh_token';
 const COOKIE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
@@ -66,8 +67,10 @@ export class AuthController {
         isEmailVerified: false
       });
 
-      // Dispatch verification email to user's inbox
-      await EmailService.sendVerificationEmail(user.email, user.displayName, emailVerificationToken);
+      // Dispatch verification email in background without blocking signup response
+      EmailService.sendVerificationEmail(user.email, user.displayName, emailVerificationToken).catch(
+        (err) => logger.error({ msg: 'Background email verification dispatch error', error: err.message })
+      );
 
       const { accessToken, refreshToken } = await AuthService.createSession(
         user,
@@ -253,7 +256,9 @@ export class AuthController {
       user.emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
       await user.save();
 
-      await EmailService.sendVerificationEmail(user.email, user.displayName, newToken);
+      EmailService.sendVerificationEmail(user.email, user.displayName, newToken).catch(
+        (err) => logger.error({ msg: 'Background email verification dispatch error', error: err.message })
+      );
 
       res.status(200).json({ message: 'Verification email resent successfully. Please check your inbox.' });
     } catch (err) {

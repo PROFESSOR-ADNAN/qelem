@@ -2,11 +2,12 @@ import { Redis, RedisOptions } from 'ioredis';
 import { env } from './env.js';
 import { logger } from '../utils/logger.js';
 
-const isTls = env.REDIS_URL.startsWith('rediss://');
+const isUpstash = env.REDIS_URL.includes('upstash.io');
+const isTls = env.REDIS_URL.startsWith('rediss://') || isUpstash;
 
 const baseOptions: RedisOptions = {
   maxRetriesPerRequest: null,
-  enableReadyCheck: true,
+  enableReadyCheck: !isUpstash,
   lazyConnect: true,
   ...(isTls ? { tls: { rejectUnauthorized: false } } : {}),
   retryStrategy(times) {

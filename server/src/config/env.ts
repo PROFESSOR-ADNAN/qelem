@@ -53,6 +53,14 @@ const EnvSchema = z.object({
   RATE_LIMIT_ENABLED: z.coerce.boolean().default(true)
 });
 
+// Normalize environment aliases
+if (!process.env.MONGODB_URI && process.env.MONGO_URI) {
+  process.env.MONGODB_URI = process.env.MONGO_URI;
+}
+if (!process.env.REDIS_URL && process.env.REDIS_URI) {
+  process.env.REDIS_URL = process.env.REDIS_URI;
+}
+
 const parsed = EnvSchema.safeParse(process.env);
 
 if (!parsed.success) {

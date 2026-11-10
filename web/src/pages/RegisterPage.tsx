@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.js';
 import { DEFAULT_COHORTS } from '@qelem/shared';
-import { UserPlus, AlertCircle } from 'lucide-react';
+import { UserPlus, AlertCircle, Mail, ExternalLink } from 'lucide-react';
 
 export const RegisterPage: React.FC = () => {
   const { register } = useAuth();
@@ -15,6 +15,7 @@ export const RegisterPage: React.FC = () => {
   const [cohortId, setCohortId] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isRegistered, setIsRegistered] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,13 +30,55 @@ export const RegisterPage: React.FC = () => {
         password,
         cohortId: cohortId || undefined
       });
-      navigate('/');
+      setIsRegistered(true);
     } catch (err: any) {
       setError(err.message || 'Registration failed. Please check your inputs.');
     } finally {
       setLoading(false);
     }
   };
+
+  if (isRegistered) {
+    return (
+      <div className="max-w-md mx-auto py-12 px-4 text-center">
+        <div className="border border-slate-800 bg-slate-900/80 rounded-2xl p-6 sm:p-8 shadow-xl space-y-5">
+          <div className="w-16 h-16 bg-blue-500/10 border border-blue-500/30 rounded-full flex items-center justify-center mx-auto text-blue-400">
+            <Mail className="w-8 h-8" />
+          </div>
+          <h1 className="text-2xl font-bold text-white">Check Your Inbox!</h1>
+          <p className="text-sm text-slate-300">
+            We have sent a verification link to <strong className="text-white">{email}</strong>.
+          </p>
+          <p className="text-xs text-slate-400">
+            Please click the link inside the email to verify your account and unlock posting privileges.
+          </p>
+          <div className="pt-2 flex flex-col gap-3">
+            <a
+              href="https://mail.google.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm"
+            >
+              <ExternalLink className="w-4 h-4" />
+              Open Gmail
+            </a>
+            <Link
+              to="/verify-email"
+              className="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium py-2 rounded-lg transition-colors text-sm"
+            >
+              Resend Verification Email
+            </Link>
+            <Link
+              to="/"
+              className="text-xs text-slate-500 hover:text-slate-400 underline pt-1"
+            >
+              Continue to Feed (Read Only)
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-md mx-auto py-10 px-4">

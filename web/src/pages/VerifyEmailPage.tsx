@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { apiFetch, ApiError } from '../api/client.js';
 import { useAuth } from '../context/AuthContext.js';
-import { CheckCircle, AlertCircle, Mail, ArrowRight, RefreshCw } from 'lucide-react';
+import { CheckCircle, AlertCircle, Mail, ArrowRight, RefreshCw, ExternalLink } from 'lucide-react';
 
 export const VerifyEmailPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -162,6 +162,15 @@ export const VerifyEmailPage: React.FC = () => {
                 <p className="text-xs text-slate-400">
                   Signed in as: <strong className="text-slate-200">{user.email}</strong>
                 </p>
+                <a
+                  href="https://mail.google.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full bg-slate-800 hover:bg-slate-700 text-white font-medium py-2 rounded-lg transition-colors flex items-center justify-center gap-2 text-xs"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  Open Gmail Inbox
+                </a>
                 <button
                   onClick={() => handleResend()}
                   disabled={resending}

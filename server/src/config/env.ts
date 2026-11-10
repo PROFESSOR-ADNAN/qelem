@@ -30,14 +30,18 @@ const EnvSchema = z.object({
   S3_FORCE_PATH_STYLE: z.coerce.boolean().default(true),
   MEDIA_CDN_URL: z.string().default('http://localhost:9000/qelem-dev-bucket/media'),
 
-  // Email Provider (Mailpit in dev; Resend / Brevo in prod)
-  EMAIL_PROVIDER: z.enum(['mailpit', 'resend', 'brevo', 'mock']).default('mailpit'),
-  SMTP_HOST: z.string().default('127.0.0.1'),
-  SMTP_PORT: z.coerce.number().default(1025),
+  // Email Provider (Mailpit in dev; Gmail / Resend / Brevo in prod)
+  EMAIL_PROVIDER: z.enum(['mailpit', 'resend', 'brevo', 'mock', 'smtp', 'gmail']).default('smtp'),
+  SMTP_HOST: z.string().default('smtp.gmail.com'),
+  SMTP_PORT: z.coerce.number().default(587),
   SMTP_USER: z.string().optional(),
   SMTP_PASS: z.string().optional(),
-  EMAIL_FROM: z.string().default('Qelem Community <noreply@example.com>'),
+  EMAIL_FROM: z.string().default('Qelem <abdullahservantofallah1234@gmail.com>'),
   EMAIL_DAILY_BUDGET: z.coerce.number().default(90),
+
+  // SMS Notifications Gateway
+  SMS_API_URL: z.string().optional(),
+  SMS_API_KEY: z.string().optional(),
 
   // Ethiopian Payment Gateway: Chapa (Telebirr / CBE Birr / Cards)
   CHAPA_SECRET_KEY: z.string().optional(),
@@ -62,6 +66,9 @@ if (!process.env.REDIS_URL && process.env.REDIS_URI) {
 }
 if (!process.env.ALLOWED_ORIGINS && process.env.CORS_ORIGIN) {
   process.env.ALLOWED_ORIGINS = process.env.CORS_ORIGIN;
+}
+if (!process.env.EMAIL_FROM && process.env.MAIL_FROM) {
+  process.env.EMAIL_FROM = process.env.MAIL_FROM;
 }
 
 const parsed = EnvSchema.safeParse(process.env);

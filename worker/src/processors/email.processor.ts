@@ -42,18 +42,19 @@ export async function checkAndIncrementQuota(): Promise<boolean> {
 }
 
 export async function processEmailJob(job: Job<any>): Promise<void> {
-  const { recipientId, type, notificationId, subject, htmlBody } = job.data;
-  const user = await User.findById(recipientId);
-  if (!user || user.state !== 'active') return;
+  const { recipientId, to, type, notificationId, subject, htmlBody } = job.data;
+  let user = recipientId ? await User.findById(recipientId) : null;
+  const targetEmail = to || user?.email;
+  if (!targetEmail) return;
 
-  const emailLower = user.email.toLowerCase().trim();
+  const emailLower = targetEmail.toLowerCase().trim();
 
   // Check suppression list (bounces, complaints, unsubscribed)
   const isSuppressed = await EmailSuppression.findOne({ emailLower });
   if (isSuppressed) {
     logger.info({ msg: 'Email suppressed due to prior bounce/unsub', email: emailLower });
     await EmailLog.create({
-      recipientId: user._id,
+      recipientId: user?._id,
       email: emailLower,
       type,
       status: 'suppressed'
@@ -74,7 +75,7 @@ export async function processEmailJob(job: Job<any>): Promise<void> {
   const hasQuota = await checkAndIncrementQuota();
   if (!hasQuota) {
     await EmailLog.create({
-      recipientId: user._id,
+      recipientId: user?._id,
       email: emailLower,
       type,
       status: 'deferred'
@@ -82,14 +83,14 @@ export async function processEmailJob(job: Job<any>): Promise<void> {
     return;
   }
 
-  const unsubUrl = `${env.API_BASE_URL}/api/v1/notifications/unsubscribe?token=${user._id}&email=${encodeURIComponent(emailLower)}`;
+  const unsubUrl = `${env.API_BASE_URL}/api/v1/notifications/unsubscribe?token=${user?._id || 'direct'}&email=${encodeURIComponent(emailLower)}`;
 
   try {
     const info = await transporter.sendMail({
       from: env.EMAIL_FROM,
-      to: user.email,
+      to: targetEmail,
       subject: subject || `[Qelem] New activity on your devlog`,
-      html: htmlBody || `<p>Hello ${user.displayName},</p><p>You have new technical activity on your devlog post. Visit Qelem to join the discussion.</p>`,
+      html: htmlBody || `<p>Hello ${user?.displayName || 'Developer'},</p><p>You have new technical activity on your devlog post. Visit Qelem to join the discussion.</p>`,
       headers: {
         'List-Unsubscribe': `<${unsubUrl}>`,
         'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click'
@@ -97,7 +98,7 @@ export async function processEmailJob(job: Job<any>): Promise<void> {
     });
 
     await EmailLog.create({
-      recipientId: user._id,
+      recipientId: user?._id,
       email: emailLower,
       type,
       status: 'sent',
@@ -110,7 +111,7 @@ export async function processEmailJob(job: Job<any>): Promise<void> {
     logger.error({ msg: 'Email sending failed', recipient: emailLower, error: errMsg });
 
     await EmailLog.create({
-      recipientId: user._id,
+      recipientId: user?._id,
       email: emailLower,
       type,
       status: 'failed'

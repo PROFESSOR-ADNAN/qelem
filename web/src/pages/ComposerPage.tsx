@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { CODE_LANGUAGES, CodeLanguage } from '@qelem/shared';
 import { offlineDB } from '../offline/db.js';
 import { apiFetch, ApiError } from '../api/client.js';
+import { useAuth } from '../context/AuthContext.js';
 import { Code, Image as ImageIcon, Send, X, Save, AlertCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -17,6 +18,7 @@ function generateUUID(): string {
 export const ComposerPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [text, setText] = useState('');
   const [showCode, setShowCode] = useState(false);
@@ -180,6 +182,18 @@ export const ComposerPage: React.FC = () => {
     <div className="max-w-xl mx-auto py-4 px-3 sm:px-4 pb-20 md:pb-8">
       <div className="border border-slate-800 bg-slate-900/60 rounded-xl p-4 sm:p-5">
         <h1 className="text-base font-bold text-white mb-3">{t('composer.title')}</h1>
+
+        {user && !user.isEmailVerified && (
+          <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-start gap-2.5 text-xs text-amber-300">
+            <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <span>Your email is not verified yet. You must verify your email before publishing. </span>
+              <Link to="/verify-email" className="font-semibold underline hover:text-amber-200 ml-1">
+                Verify Now
+              </Link>
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Main Textarea */}

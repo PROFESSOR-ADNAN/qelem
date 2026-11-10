@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { AuthController } from '../controllers/auth.controller.js';
 import { rateLimit } from '../middleware/rate-limit.js';
+import { optionalAuth } from '../middleware/auth.js';
 
 export const authRouter = Router();
 
@@ -21,5 +22,11 @@ authRouter.post(
 authRouter.post('/refresh', AuthController.refresh);
 authRouter.post('/logout', AuthController.logout);
 authRouter.post('/verify-email', AuthController.verifyEmail);
+authRouter.post(
+  '/resend-verification',
+  optionalAuth,
+  rateLimit({ windowSeconds: 60, maxRequests: 3, prefix: 'resend-verif' }),
+  AuthController.resendVerification
+);
 authRouter.post('/forgot-password', AuthController.requestPasswordReset);
 authRouter.post('/reset-password', AuthController.confirmPasswordReset);

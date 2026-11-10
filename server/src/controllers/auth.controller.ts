@@ -11,6 +11,7 @@ import {
 import { AppError } from '../middleware/error.js';
 import { randomBytes } from 'node:crypto';
 import { env } from '../config/env.js';
+import { EmailService } from '../services/email.service.js';
 
 const REFRESH_COOKIE_NAME = 'qelem_refresh_token';
 const COOKIE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
@@ -52,12 +53,6 @@ export class AuthController {
       const emailVerificationToken = randomBytes(32).toString('hex');
       const emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
-      const shouldAutoVerify =
-        process.env.AUTO_VERIFY_EMAIL === 'true' ||
-        env.EMAIL_PROVIDER === 'mailpit' ||
-        env.EMAIL_PROVIDER === 'mock' ||
-        process.env.REQUIRE_EMAIL_VERIFICATION === 'false';
-
       const user = await User.create({
         username: input.username,
         usernameLower: input.username.toLowerCase(),
@@ -68,8 +63,11 @@ export class AuthController {
         cohortId: input.cohortId || null,
         emailVerificationToken,
         emailVerificationExpires,
-        isEmailVerified: shouldAutoVerify
+        isEmailVerified: false
       });
+
+      // Dispatch verification email to user's inbox
+      await EmailService.sendVerificationEmail(user.email, user.displayName, emailVerificationToken);
 
       const { accessToken, refreshToken } = await AuthService.createSession(
         user,
@@ -224,6 +222,40 @@ export class AuthController {
       await user.save();
 
       res.status(200).json({ message: 'Email address verified successfully' });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async resendVerification(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const email = req.body?.email;
+      const userId = req.user?.id;
+
+      let user: any = null;
+      if (userId) {
+        user = await User.findById(userId);
+      } else if (email) {
+        user = await User.findOne({ emailLower: String(email).trim().toLowerCase() });
+      }
+
+      if (!user) {
+        throw new AppError(404, 'User account not found');
+      }
+
+      if (user.isEmailVerified) {
+        res.status(200).json({ message: 'Email address is already verified' });
+        return;
+      }
+
+      const newToken = randomBytes(32).toString('hex');
+      user.emailVerificationToken = newToken;
+      user.emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      await user.save();
+
+      await EmailService.sendVerificationEmail(user.email, user.displayName, newToken);
+
+      res.status(200).json({ message: 'Verification email resent successfully. Please check your inbox.' });
     } catch (err) {
       next(err);
     }

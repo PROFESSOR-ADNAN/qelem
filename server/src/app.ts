@@ -87,7 +87,7 @@ app.use((req, res, next) => {
 });
 
 // Liveness & Readiness endpoints
-app.get('/healthz', (_req, res) => {
+app.get(['/healthz', '/health'], (_req, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 

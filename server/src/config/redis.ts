@@ -30,10 +30,55 @@ redis.on('error', (err) => {
 export const redisPub = new Redis(env.REDIS_URL, { ...baseOptions });
 export const redisSub = new Redis(env.REDIS_URL, { ...baseOptions });
 
+async function safeConnect(client: Redis): Promise<void> {
+  if (client.status === 'ready' || client.status === 'connect') {
+    return;
+  }
+  if (client.status === 'wait') {
+    try {
+      await client.connect();
+    } catch (err: any) {
+      if (err?.message?.includes('already connecting/connected')) {
+        return;
+      }
+      throw err;
+    }
+    return;
+  }
+  if (client.status === 'connecting') {
+    return new Promise<void>((resolve, reject) => {
+      const cleanup = () => {
+        client.removeListener('ready', onReady);
+        client.removeListener('connect', onReady);
+        client.removeListener('error', onError);
+      };
+      const onReady = () => {
+        cleanup();
+        resolve();
+      };
+      const onError = (err: Error) => {
+        cleanup();
+        reject(err);
+      };
+      client.once('ready', onReady);
+      client.once('connect', onReady);
+      client.once('error', onError);
+    });
+  }
+}
+
 export async function connectRedis(): Promise<void> {
-  await Promise.all([redis.connect(), redisPub.connect(), redisSub.connect()]);
+  await Promise.all([safeConnect(redis), safeConnect(redisPub), safeConnect(redisSub)]);
 }
 
 export async function disconnectRedis(): Promise<void> {
-  await Promise.all([redis.quit(), redisPub.quit(), redisSub.quit()]);
+  const safeQuit = async (client: Redis) => {
+    if (client.status === 'end') return;
+    try {
+      await client.quit();
+    } catch {
+      client.disconnect();
+    }
+  };
+  await Promise.all([safeQuit(redis), safeQuit(redisPub), safeQuit(redisSub)]);
 }

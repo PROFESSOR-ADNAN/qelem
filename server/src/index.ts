@@ -70,7 +70,11 @@ async function bootstrap() {
   process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 }
 
-bootstrap().catch((err) => {
-  logger.error({ msg: 'Failed to bootstrap server', error: err });
+bootstrap().catch((err: any) => {
+  logger.error({
+    msg: 'Failed to bootstrap server',
+    error: err?.message || String(err),
+    stack: err?.stack
+  });
   process.exit(1);
 });

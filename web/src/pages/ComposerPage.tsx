@@ -183,11 +183,11 @@ export const ComposerPage: React.FC = () => {
       <div className="border border-slate-800 bg-slate-900/60 rounded-xl p-4 sm:p-5">
         <h1 className="text-base font-bold text-white mb-3">{t('composer.title')}</h1>
 
-        {user && !user.isEmailVerified && (
+        {user && !user.isEmailVerified && !user.isPhoneVerified && (
           <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-start gap-2.5 text-xs text-amber-300">
             <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
             <div className="flex-1">
-              <span>Your email is not verified yet. You must verify your email before publishing. </span>
+              <span>Your account is not verified yet. Please verify your email or Ethiopian phone number to publish. </span>
               <Link to="/verify-email" className="font-semibold underline hover:text-amber-200 ml-1">
                 Verify Now
               </Link>

@@ -9,6 +9,8 @@ interface User {
   role: string;
   cohortId?: string | null;
   isEmailVerified: boolean;
+  phone?: string | null;
+  isPhoneVerified?: boolean;
   avatarMediaId?: string | null;
 }
 

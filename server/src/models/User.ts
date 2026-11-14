@@ -17,6 +17,10 @@ export interface IUser extends Document {
   isEmailVerified: boolean;
   emailVerificationToken?: string | null;
   emailVerificationExpires?: Date | null;
+  phone?: string | null;
+  isPhoneVerified: boolean;
+  phoneOtp?: string | null;
+  phoneOtpExpires?: Date | null;
   passwordResetToken?: string | null;
   passwordResetExpires?: Date | null;
   followersCount: number;
@@ -109,6 +113,24 @@ const UserSchema = new Schema<IUser>(
       select: false
     },
     emailVerificationExpires: {
+      type: Date,
+      select: false
+    },
+    phone: {
+      type: String,
+      default: null,
+      trim: true,
+      sparse: true
+    },
+    isPhoneVerified: {
+      type: Boolean,
+      default: false
+    },
+    phoneOtp: {
+      type: String,
+      select: false
+    },
+    phoneOtpExpires: {
       type: Date,
       select: false
     },

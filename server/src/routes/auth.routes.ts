@@ -28,5 +28,17 @@ authRouter.post(
   rateLimit({ windowSeconds: 60, maxRequests: 3, prefix: 'resend-verif' }),
   AuthController.resendVerification
 );
+authRouter.post(
+  '/phone/send-otp',
+  optionalAuth,
+  rateLimit({ windowSeconds: 300, maxRequests: 5, prefix: 'sms-otp' }),
+  AuthController.sendPhoneOtp
+);
+authRouter.post(
+  '/phone/verify-otp',
+  optionalAuth,
+  rateLimit({ windowSeconds: 300, maxRequests: 10, prefix: 'sms-verify' }),
+  AuthController.verifyPhoneOtp
+);
 authRouter.post('/forgot-password', AuthController.requestPasswordReset);
 authRouter.post('/reset-password', AuthController.confirmPasswordReset);

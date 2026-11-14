@@ -31,11 +31,11 @@ export const Navbar: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-slate-800 bg-slate-950/80 backdrop-blur-md">
-      {user && !user.isEmailVerified && location.pathname !== '/verify-email' && (
+      {user && !user.isEmailVerified && !user.isPhoneVerified && location.pathname !== '/verify-email' && (
         <div className="bg-amber-500/15 border-b border-amber-500/30 px-4 py-2 text-xs text-amber-200 flex items-center justify-between">
           <div className="flex items-center space-x-2 truncate">
             <span className="font-semibold text-amber-400">⚠️ Verification Required:</span>
-            <span className="truncate">Please verify your email ({user.email}) to unlock posting.</span>
+            <span className="truncate">Please verify your email or Ethiopian phone number to unlock posting.</span>
           </div>
           <Link
             to="/verify-email"

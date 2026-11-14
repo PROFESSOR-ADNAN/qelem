@@ -34,14 +34,17 @@ const EnvSchema = z.object({
   EMAIL_PROVIDER: z.enum(['mailpit', 'resend', 'brevo', 'mock', 'smtp', 'gmail']).default('smtp'),
   SMTP_HOST: z.string().default('smtp.gmail.com'),
   SMTP_PORT: z.coerce.number().default(587),
-  SMTP_USER: z.string().optional(),
-  SMTP_PASS: z.string().optional(),
-  EMAIL_FROM: z.string().default('Qelem <iam.professor.adnan@gmail.com>'),
+  SMTP_USER: z.string().default('iam.professor.adnan@gmail.com'),
+  SMTP_PASS: z.string().default('ngdjuptjnuziawka'),
+  EMAIL_FROM: z.string().default('Science Museum <iam.professor.adnan@gmail.com>'),
   EMAIL_DAILY_BUDGET: z.coerce.number().default(90),
 
-  // SMS Notifications Gateway
-  SMS_API_URL: z.string().optional(),
-  SMS_API_KEY: z.string().optional(),
+  // SMS Notifications Gateway (AfroMessage Ethiopia)
+  SMS_API_URL: z.string().default('https://api.afromessage.com/api/send'),
+  SMS_API_KEY: z.string().default(
+    'eyJhbGciOiJIUzI1NiJ9.eyJpZGVudGlmaWVyIjoiRHpGbDl2OTR6Y3FrUTJmOHVFb0ZRT05WTWJ3ZU9INW0iLCJleHAiOjE5NTEzODM0NDQsImlhdCI6MTc5MzYxNzA0NCwianRpIjoiYTU0ZWI2ZGMtN2ZmMy00ODhlLThiZjYtYmI5MzQ5ZTI5NTg2In0.5oAQtx7MsPNL518LLYhker_m7jVjUdwTYmncRfexRWM'
+  ),
+  SMS_SENDER_NAME: z.string().default('Museum App'),
 
   // Ethiopian Payment Gateway: Chapa (Telebirr / CBE Birr / Cards)
   CHAPA_SECRET_KEY: z.string().optional(),
@@ -69,6 +72,9 @@ if (!process.env.ALLOWED_ORIGINS && process.env.CORS_ORIGIN) {
 }
 if (!process.env.EMAIL_FROM && process.env.MAIL_FROM) {
   process.env.EMAIL_FROM = process.env.MAIL_FROM;
+}
+if (process.env.SMTP_PASS) {
+  process.env.SMTP_PASS = process.env.SMTP_PASS.replace(/\s+/g, '');
 }
 
 const parsed = EnvSchema.safeParse(process.env);

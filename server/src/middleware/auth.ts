@@ -112,17 +112,17 @@ export async function requireVerifiedEmail(req: Request, _res: Response, next: N
   }
 
   if (!req.user.isVerified) {
-    // Check if the user document in database is verified (e.g. verified after token was minted)
-    const userDoc = await User.findById(req.user.id).select('isEmailVerified');
-    if (userDoc?.isEmailVerified) {
+    // Check if the user document in database is verified via email OR phone
+    const userDoc = await User.findById(req.user.id).select('isEmailVerified isPhoneVerified');
+    if (userDoc?.isEmailVerified || userDoc?.isPhoneVerified) {
       req.user.isVerified = true;
       return next();
     }
     return next(
       new AppError(
         403,
-        'Please verify your email address to perform this action',
-        'https://qelem.et/errors/email-unverified'
+        'Please verify your email address or Ethiopian phone number to perform this action',
+        'https://qelem.et/errors/verification-required'
       )
     );
   }

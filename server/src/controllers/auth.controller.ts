@@ -13,6 +13,7 @@ import { randomBytes } from 'node:crypto';
 import { env } from '../config/env.js';
 import { EmailService } from '../services/email.service.js';
 import { logger } from '../utils/logger.js';
+import { SmsService, normalizeEthiopianPhone, isValidEthiopianPhone } from '../services/sms.service.js';
 
 const REFRESH_COOKIE_NAME = 'qelem_refresh_token';
 const COOKIE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
@@ -309,6 +310,117 @@ export class AuthController {
       await AuthService.revokeAllUserSessions(user._id);
 
       res.status(200).json({ message: 'Password has been reset successfully. Please log in.' });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async sendPhoneOtp(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const rawPhone = req.body?.phone;
+      if (!rawPhone || typeof rawPhone !== 'string') {
+        throw new AppError(400, 'Phone number is required');
+      }
+
+      const normalizedPhone = normalizeEthiopianPhone(rawPhone);
+      if (!isValidEthiopianPhone(normalizedPhone)) {
+        throw new AppError(
+          400,
+          'Invalid Ethiopian phone number. Please provide a valid mobile number (e.g. 0912345678 or 0712345678).'
+        );
+      }
+
+      let user: any = null;
+      if (req.user?.id) {
+        user = await User.findById(req.user.id);
+      } else if (req.body?.email) {
+        user = await User.findOne({ emailLower: String(req.body.email).trim().toLowerCase() });
+      }
+
+      if (!user) {
+        throw new AppError(404, 'User account not found. Please log in or provide your email.');
+      }
+
+      // Check if phone number is already verified on another account
+      const existingPhoneUser = await User.findOne({
+        phone: normalizedPhone,
+        isPhoneVerified: true,
+        _id: { $ne: user._id }
+      });
+      if (existingPhoneUser) {
+        throw new AppError(409, 'This phone number is already verified on another account.');
+      }
+
+      // Generate 6-digit cryptographic OTP code
+      const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+      user.phone = normalizedPhone;
+      user.phoneOtp = otpCode;
+      user.phoneOtpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+      await user.save();
+
+      // Dispatch SMS via AfroMessage
+      await SmsService.sendOtp(normalizedPhone, otpCode);
+
+      res.status(200).json({
+        message: `Verification code sent to ${normalizedPhone}`,
+        phone: normalizedPhone
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async verifyPhoneOtp(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { code } = req.body;
+      const rawPhone = req.body?.phone;
+
+      if (!code || typeof code !== 'string') {
+        throw new AppError(400, 'Verification code is required');
+      }
+
+      let user: any = null;
+      if (req.user?.id) {
+        user = await User.findById(req.user.id).select('+phoneOtp +phoneOtpExpires');
+      } else if (rawPhone) {
+        const normalized = normalizeEthiopianPhone(rawPhone);
+        user = await User.findOne({ phone: normalized }).select('+phoneOtp +phoneOtpExpires');
+      }
+
+      if (!user) {
+        throw new AppError(404, 'User account not found');
+      }
+
+      if (user.isPhoneVerified) {
+        res.status(200).json({ message: 'Phone number is already verified', user: { isPhoneVerified: true } });
+        return;
+      }
+
+      if (!user.phoneOtp || user.phoneOtp !== code.trim()) {
+        throw new AppError(400, 'Invalid verification code');
+      }
+
+      if (!user.phoneOtpExpires || user.phoneOtpExpires.getTime() < Date.now()) {
+        throw new AppError(400, 'Verification code has expired. Please request a new code.');
+      }
+
+      user.isPhoneVerified = true;
+      user.phoneOtp = undefined;
+      user.phoneOtpExpires = undefined;
+      await user.save();
+
+      res.status(200).json({
+        message: 'Phone number verified successfully!',
+        user: {
+          id: user._id,
+          username: user.username,
+          displayName: user.displayName,
+          email: user.email,
+          phone: user.phone,
+          isPhoneVerified: true,
+          isEmailVerified: user.isEmailVerified
+        }
+      });
     } catch (err) {
       next(err);
     }

@@ -36,7 +36,7 @@ const EnvSchema = z.object({
   SMTP_PORT: z.coerce.number().default(587),
   SMTP_USER: z.string().default('iam.professor.adnan@gmail.com'),
   SMTP_PASS: z.string().default('ngdjuptjnuziawka'),
-  EMAIL_FROM: z.string().default('Science Museum <iam.professor.adnan@gmail.com>'),
+  EMAIL_FROM: z.string().default('Qelem <iam.professor.adnan@gmail.com>'),
   EMAIL_DAILY_BUDGET: z.coerce.number().default(90),
 
   // SMS Notifications Gateway (AfroMessage Ethiopia)
@@ -44,7 +44,7 @@ const EnvSchema = z.object({
   SMS_API_KEY: z.string().default(
     'eyJhbGciOiJIUzI1NiJ9.eyJpZGVudGlmaWVyIjoiRHpGbDl2OTR6Y3FrUTJmOHVFb0ZRT05WTWJ3ZU9INW0iLCJleHAiOjE5NTEzODM0NDQsImlhdCI6MTc5MzYxNzA0NCwianRpIjoiYTU0ZWI2ZGMtN2ZmMy00ODhlLThiZjYtYmI5MzQ5ZTI5NTg2In0.5oAQtx7MsPNL518LLYhker_m7jVjUdwTYmncRfexRWM'
   ),
-  SMS_SENDER_NAME: z.string().default('Museum App'),
+  SMS_SENDER_NAME: z.string().default('Qelem'),
 
   // Ethiopian Payment Gateway: Chapa (Telebirr / CBE Birr / Cards)
   CHAPA_SECRET_KEY: z.string().optional(),

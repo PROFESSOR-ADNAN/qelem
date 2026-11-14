@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { PostsController } from '../controllers/posts.controller.js';
+import { EngagementController } from '../controllers/engagement.controller.js';
 import { requireAuth, optionalAuth, requireVerifiedEmail } from '../middleware/auth.js';
 import { rateLimit } from '../middleware/rate-limit.js';
 
@@ -14,9 +15,22 @@ postsRouter.post(
   PostsController.create
 );
 
+// Live search with debounce
+postsRouter.get('/search/query', optionalAuth, PostsController.search);
+
 postsRouter.get('/:id', optionalAuth, PostsController.getById);
 postsRouter.patch('/:id', requireAuth, PostsController.edit);
 postsRouter.delete('/:id', requireAuth, PostsController.delete);
+
+// Like & Bookmark shortcuts matching frontend client paths
+postsRouter.put('/:id/like', requireAuth, EngagementController.toggleLike);
+postsRouter.delete('/:id/like', requireAuth, EngagementController.toggleLike);
+postsRouter.put('/:id/bookmark', requireAuth, EngagementController.toggleBookmark);
+postsRouter.delete('/:id/bookmark', requireAuth, EngagementController.toggleBookmark);
+
+// Comments shortcuts matching frontend client paths
+postsRouter.post('/:id/comments', requireAuth, EngagementController.createComment);
+postsRouter.get('/:id/comments', optionalAuth, EngagementController.getComments);
 
 postsRouter.get('/author/:username', optionalAuth, PostsController.getByAuthor);
 postsRouter.get('/tag/:tag', optionalAuth, PostsController.getByTag);

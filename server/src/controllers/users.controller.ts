@@ -30,6 +30,10 @@ export class UsersController {
       if (input.displayName !== undefined) user.displayName = input.displayName;
       if (input.bio !== undefined) user.bio = input.bio;
       if (input.cohortId !== undefined) user.cohortId = input.cohortId;
+      if ((req.body as any).university !== undefined) user.university = (req.body as any).university;
+      if ((req.body as any).githubUrl !== undefined) user.githubUrl = (req.body as any).githubUrl;
+      if ((req.body as any).telegramUsername !== undefined) user.telegramUsername = (req.body as any).telegramUsername;
+      if ((req.body as any).portfolioUrl !== undefined) user.portfolioUrl = (req.body as any).portfolioUrl;
       if (input.avatarMediaId !== undefined) {
         user.avatarMediaId = input.avatarMediaId ? new Types.ObjectId(input.avatarMediaId) : null;
       }
@@ -74,6 +78,10 @@ export class UsersController {
           bio: user.bio,
           avatarMediaId: user.avatarMediaId,
           cohortId: user.cohortId,
+          university: user.university,
+          githubUrl: user.githubUrl,
+          telegramUsername: user.telegramUsername,
+          portfolioUrl: user.portfolioUrl,
           followersCount: user.followersCount,
           followingCount: user.followingCount,
           postsCount: user.postsCount,

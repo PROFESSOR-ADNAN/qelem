@@ -23,6 +23,8 @@ import { shareRouter } from './routes/share.routes.js';
 import { accountRouter } from './routes/account.routes.js';
 import { paymentRouter } from './routes/payment.routes.js';
 import { swaggerController } from './docs/swagger.js';
+import { EngagementController } from './controllers/engagement.controller.js';
+import { requireAuth } from './middleware/auth.js';
 
 // Initialize Prometheus Default Metrics
 promClient.collectDefaultMetrics({ prefix: 'qelem_' });
@@ -172,6 +174,7 @@ app.use('/api/v1/admin', adminRouter);
 app.use('/api/v1/share', shareRouter);
 app.use('/api/v1/account', accountRouter);
 app.use('/api/v1/payments', paymentRouter);
+app.delete('/api/v1/comments/:id', requireAuth, EngagementController.deleteComment);
 
 // Centralized RFC 9457 error handler
 app.use(errorHandler);

@@ -88,7 +88,18 @@ export class FeedController {
         return;
       }
 
-      // Read from latest versioned trending snapshot in Redis
+      // Read from latest versioned trending snapshot in Redis or cached default feed
+      if (!cohort && !tag && !cursor) {
+        const cachedDefault = await redis.get('cache:feed:explore:default');
+        if (cachedDefault) {
+          res.setHeader('X-Cache', 'HIT');
+          res.setHeader('Cache-Control', 'public, max-age=60');
+          res.json(JSON.parse(cachedDefault));
+          return;
+        }
+        res.setHeader('X-Cache', 'MISS');
+      }
+
       const latestVersion = await redis.get('trending:global:latest');
       if (latestVersion) {
         const snapshotKey = `trending:global:${latestVersion}`;
@@ -108,14 +119,20 @@ export class FeedController {
       const fallbackPosts = await Post.find({ state: 'published' })
         .sort({ publishedAt: -1, _id: -1 })
         .limit(limit)
-        .populate('authorId', 'username displayName avatarMediaId cohortId')
+        .populate('authorId', 'username displayName avatarMediaId cohortId university')
         .populate('mediaIds')
         .lean();
 
-      res.json({
+      const responsePayload = {
         items: fallbackPosts.map(p => ({ post: p })),
         nextCursor: null
-      });
+      };
+
+      if (!cohort && !tag && !cursor) {
+        await redis.setex('cache:feed:explore:default', 60, JSON.stringify(responsePayload));
+      }
+
+      res.json(responsePayload);
     } catch (err) {
       next(err);
     }

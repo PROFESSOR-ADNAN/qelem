@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
 import { logger } from '../utils/logger.js';
+import { SentryTracker } from '../utils/sentry.js';
 import { RFC9457Problem } from '@qelem/shared';
 
 export class AppError extends Error {
@@ -71,6 +72,7 @@ export function errorHandler(err: unknown, req: Request, res: Response, _next: N
 
   const errorObj = err instanceof Error ? { message: err.message, stack: err.stack } : { raw: String(err) };
   logger.error({ msg: 'Unhandled internal server error', error: errorObj, requestId, path: req.originalUrl });
+  SentryTracker.captureException(err, { requestId, path: req.originalUrl });
 
   const problem: RFC9457Problem = {
     type: 'about:blank',

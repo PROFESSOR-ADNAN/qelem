@@ -18,6 +18,7 @@ import { RegisterPage } from './pages/RegisterPage.js';
 import { AdminPage } from './pages/AdminPage.js';
 import { VerifyEmailPage } from './pages/VerifyEmailPage.js';
 import { ArchitecturePage } from './pages/ArchitecturePage.js';
+import { InstallPwaBanner } from './components/InstallPwaBanner.js';
 import { initOutboxSync } from './offline/sync.js';
 import './i18n/index.js';
 
@@ -49,6 +50,7 @@ export const App: React.FC = () => {
           <BrowserRouter>
             <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100">
               <Navbar />
+              <InstallPwaBanner />
               <main className="flex-1">
                 <Routes>
                   <Route path="/" element={<FeedPage />} />

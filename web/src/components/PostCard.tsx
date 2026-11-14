@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, MessageSquare, Bookmark, Share2, Check } from 'lucide-react';
+import { Heart, MessageSquare, Bookmark, Share2, Check, Coffee, GraduationCap } from 'lucide-react';
 import { CodeBlock } from './CodeBlock.js';
 import { DataSaverImage } from './DataSaverImage.js';
+import { ChapaTipModal } from './ChapaTipModal.js';
 import { apiFetch } from '../api/client.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useTranslation } from 'react-i18next';
@@ -25,11 +26,15 @@ export const PostCard: React.FC<PostCardProps> = ({
   const [likeCount, setLikeCount] = useState(post.likeCount || 0);
   const [bookmarked, setBookmarked] = useState(initialBookmarked);
   const [copied, setCopied] = useState(false);
+  const [selectedReaction, setSelectedReaction] = useState<string | null>(null);
+  const [showTipModal, setShowTipModal] = useState(false);
 
   const author = post.authorId || {};
   const authorName = author.displayName || author.username || 'Anonymous Dev';
   const authorUsername = author.username || 'anonymous';
+  const authorId = typeof post.authorId === 'object' ? post.authorId?._id : post.authorId;
   const cohort = author.cohortId;
+  const university = author.university || (cohort === 'aau-cs' ? 'Addis Ababa University' : null);
 
   const formatCount = (count: number) => {
     if (count >= 1000) {
@@ -57,6 +62,18 @@ export const PostCard: React.FC<PostCardProps> = ({
       // Rollback on failure
       setLiked(!nextState);
       setLikeCount((prev: number) => (!nextState ? prev + 1 : Math.max(0, prev - 1)));
+    }
+  };
+
+  const handleReaction = (reaction: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    if (selectedReaction === reaction) {
+      setSelectedReaction(null);
+    } else {
+      setSelectedReaction(reaction);
+      if (!liked) {
+        handleLike(e);
+      }
     }
   };
 
@@ -106,118 +123,177 @@ export const PostCard: React.FC<PostCardProps> = ({
   });
 
   return (
-    <article className="border border-slate-800/80 bg-slate-900/40 hover:bg-slate-900/60 rounded-xl p-4 sm:p-5 transition mb-4">
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <Link to={`/u/${authorUsername}`} className="flex items-center space-x-3 group">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-600 to-indigo-800 flex items-center justify-center text-white font-semibold text-sm shadow">
-            {authorName.charAt(0).toUpperCase()}
-          </div>
-          <div>
-            <div className="flex items-center space-x-2">
-              <span className="font-semibold text-sm text-slate-100 group-hover:text-indigo-400 transition-colors">
-                {authorName}
-              </span>
-              <span className="text-xs text-slate-400">@{authorUsername}</span>
+    <>
+      <article className="border border-slate-800/80 bg-slate-900/40 hover:bg-slate-900/60 rounded-xl p-4 sm:p-5 transition mb-4 shadow-sm">
+        {/* Header */}
+        <div className="flex items-start justify-between">
+          <Link to={`/u/${authorUsername}`} className="flex items-center space-x-3 group">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-600 to-indigo-800 flex items-center justify-center text-white font-semibold text-sm shadow">
+              {authorName.charAt(0).toUpperCase()}
             </div>
-            {cohort && (
-              <span className="inline-block px-2 py-0.5 mt-0.5 rounded text-[11px] font-medium bg-indigo-950/80 text-indigo-300 border border-indigo-900/60">
-                {cohort}
-              </span>
-            )}
-          </div>
-        </Link>
-        <span className="text-xs text-slate-500">{timeString}</span>
-      </div>
+            <div>
+              <div className="flex items-center space-x-2">
+                <span className="font-semibold text-sm text-slate-100 group-hover:text-indigo-400 transition-colors">
+                  {authorName}
+                </span>
+                <span className="text-xs text-slate-400">@{authorUsername}</span>
+              </div>
 
-      {/* Post Text */}
-      <div className="mt-3 text-slate-200 text-sm whitespace-pre-line leading-relaxed break-words">
-        {post.text}
-      </div>
-
-      {/* Optional Code Snippet */}
-      {post.code && post.code.body && (
-        <CodeBlock lang={post.code.lang || 'code'} code={post.code.body} />
-      )}
-
-      {/* Optional Attached Screenshots */}
-      {post.mediaIds && post.mediaIds.length > 0 && (
-        <div className="mt-3 grid gap-2 grid-cols-1 sm:grid-cols-2">
-          {post.mediaIds.map((media: any) => {
-            const variant = media.variants?.medium || media.variants?.large;
-            if (!variant) return null;
-            return (
-              <DataSaverImage
-                key={media._id}
-                src={variant.url}
-                alt="Post screenshot"
-                width={variant.width}
-                height={variant.height}
-                bytes={variant.bytes}
-                placeholder={media.placeholder}
-              />
-            );
-          })}
+              {/* Ethiopian University & Cohort Badges */}
+              <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+                {university && (
+                  <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-950/80 text-emerald-300 border border-emerald-800/60">
+                    <GraduationCap className="w-3 h-3" />
+                    <span>{university}</span>
+                  </span>
+                )}
+                {cohort && !university && (
+                  <span className="inline-block px-2 py-0.5 rounded text-[11px] font-medium bg-indigo-950/80 text-indigo-300 border border-indigo-900/60">
+                    {cohort}
+                  </span>
+                )}
+              </div>
+            </div>
+          </Link>
+          <span className="text-xs text-slate-500">{timeString}</span>
         </div>
-      )}
 
-      {/* Tags */}
-      {post.tags && post.tags.length > 0 && (
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          {post.tags.map((tag: string) => (
-            <Link
-              key={tag}
-              to={`/tags/${tag}`}
-              className="px-2 py-0.5 rounded-full text-xs font-mono text-slate-400 bg-slate-800/80 hover:bg-slate-800 hover:text-indigo-300 transition"
+        {/* Post Text */}
+        <div className="mt-3 text-slate-200 text-sm whitespace-pre-line leading-relaxed break-words">
+          {post.text}
+        </div>
+
+        {/* Optional Code Snippet */}
+        {post.code && post.code.body && (
+          <CodeBlock lang={post.code.lang || 'code'} code={post.code.body} />
+        )}
+
+        {/* Optional Attached Screenshots */}
+        {post.mediaIds && post.mediaIds.length > 0 && (
+          <div className="mt-3 grid gap-2 grid-cols-1 sm:grid-cols-2">
+            {post.mediaIds.map((media: any) => {
+              const variant = media.variants?.medium || media.variants?.large;
+              if (!variant) return null;
+              return (
+                <DataSaverImage
+                  key={media._id}
+                  src={variant.url}
+                  alt="Post screenshot"
+                  width={variant.width}
+                  height={variant.height}
+                  bytes={variant.bytes}
+                  placeholder={media.placeholder}
+                />
+              );
+            })}
+          </div>
+        )}
+
+        {/* Tags */}
+        {post.tags && post.tags.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {post.tags.map((tag: string) => (
+              <Link
+                key={tag}
+                to={`/explore?tag=${tag}`}
+                className="px-2 py-0.5 rounded-full text-xs font-mono text-slate-400 bg-slate-800/80 hover:bg-slate-800 hover:text-indigo-300 transition"
+              >
+                #{tag}
+              </Link>
+            ))}
+          </div>
+        )}
+
+        {/* Dev Reactions Bar */}
+        <div className="mt-3 flex items-center space-x-1.5 pt-2">
+          {[
+            { emoji: '💡', label: 'Insightful' },
+            { emoji: '🚀', label: 'Ship it' },
+            { emoji: '❤️', label: 'Helpful' },
+            { emoji: '🔥', label: 'Fire' }
+          ].map((item) => (
+            <button
+              key={item.emoji}
+              onClick={(e) => handleReaction(item.emoji, e)}
+              className={`px-2 py-0.5 rounded-full text-xs transition border flex items-center space-x-1 ${
+                selectedReaction === item.emoji
+                  ? 'bg-indigo-950 border-indigo-500 text-indigo-300 shadow'
+                  : 'bg-slate-900/60 border-slate-800/80 text-slate-400 hover:border-slate-700 hover:text-slate-200'
+              }`}
+              title={item.label}
             >
-              #{tag}
-            </Link>
+              <span>{item.emoji}</span>
+              {selectedReaction === item.emoji && <span className="text-[10px] font-mono">1</span>}
+            </button>
           ))}
         </div>
+
+        {/* Engagement Actions */}
+        <div className="mt-3 pt-3 border-t border-slate-800/60 flex items-center justify-between text-slate-400 text-xs">
+          {/* Like */}
+          <button
+            onClick={handleLike}
+            className={`flex items-center space-x-1.5 transition ${
+              liked ? 'text-rose-500 font-medium' : 'hover:text-rose-400'
+            }`}
+          >
+            <Heart className={`w-4 h-4 ${liked ? 'fill-rose-500' : ''}`} />
+            <span>{formatCount(likeCount)}</span>
+          </button>
+
+          {/* Comment */}
+          <Link
+            to={`/p/${post._id}`}
+            className="flex items-center space-x-1.5 hover:text-indigo-400 transition"
+          >
+            <MessageSquare className="w-4 h-4" />
+            <span>{formatCount(post.commentCount || 0)}</span>
+          </Link>
+
+          {/* Chapa Tip Support Button */}
+          {authorId && (
+            <button
+              onClick={() => setShowTipModal(true)}
+              className="flex items-center space-x-1 px-2 py-0.5 rounded-md text-emerald-400 hover:text-emerald-300 hover:bg-emerald-950/40 border border-emerald-900/40 transition font-medium"
+              title="Tip author via Chapa (Telebirr / CBE)"
+            >
+              <Coffee className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Tip Birr</span>
+            </button>
+          )}
+
+          {/* Bookmark */}
+          <button
+            onClick={handleBookmark}
+            className={`flex items-center space-x-1.5 transition ${
+              bookmarked ? 'text-amber-400' : 'hover:text-amber-300'
+            }`}
+          >
+            <Bookmark className={`w-4 h-4 ${bookmarked ? 'fill-amber-400' : ''}`} />
+          </button>
+
+          {/* Share */}
+          <button
+            onClick={handleShare}
+            className="flex items-center space-x-1 hover:text-slate-200 transition"
+            title={t('feed.copyLink')}
+          >
+            {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Share2 className="w-4 h-4" />}
+            <span>{copied ? 'Copied' : ''}</span>
+          </button>
+        </div>
+      </article>
+
+      {/* Chapa Tipping Modal */}
+      {showTipModal && (
+        <ChapaTipModal
+          authorId={authorId}
+          authorName={authorName}
+          authorUsername={authorUsername}
+          postId={post._id}
+          onClose={() => setShowTipModal(false)}
+        />
       )}
-
-      {/* Engagement Actions */}
-      <div className="mt-4 pt-3 border-t border-slate-800/60 flex items-center justify-between text-slate-400 text-xs">
-        {/* Like */}
-        <button
-          onClick={handleLike}
-          className={`flex items-center space-x-1.5 transition ${
-            liked ? 'text-rose-500 font-medium' : 'hover:text-rose-400'
-          }`}
-        >
-          <Heart className={`w-4 h-4 ${liked ? 'fill-rose-500' : ''}`} />
-          <span>{formatCount(likeCount)}</span>
-        </button>
-
-        {/* Comment */}
-        <Link
-          to={`/p/${post._id}`}
-          className="flex items-center space-x-1.5 hover:text-indigo-400 transition"
-        >
-          <MessageSquare className="w-4 h-4" />
-          <span>{formatCount(post.commentCount || 0)}</span>
-        </Link>
-
-        {/* Bookmark */}
-        <button
-          onClick={handleBookmark}
-          className={`flex items-center space-x-1.5 transition ${
-            bookmarked ? 'text-amber-400' : 'hover:text-amber-300'
-          }`}
-        >
-          <Bookmark className={`w-4 h-4 ${bookmarked ? 'fill-amber-400' : ''}`} />
-        </button>
-
-        {/* Share */}
-        <button
-          onClick={handleShare}
-          className="flex items-center space-x-1 hover:text-slate-200 transition"
-          title={t('feed.copyLink')}
-        >
-          {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Share2 className="w-4 h-4" />}
-          <span>{copied ? 'Copied' : ''}</span>
-        </button>
-      </div>
-    </article>
+    </>
   );
 };

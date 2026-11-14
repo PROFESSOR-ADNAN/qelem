@@ -9,6 +9,7 @@ import { processCounterFlushJob, processCounterReconciliationJob } from './proce
 import { processNotificationJob } from './processors/notification.processor.js';
 import { processEmailJob } from './processors/email.processor.js';
 import { processTrendingJob } from './processors/trending.processor.js';
+import { processWeeklyDigestJob } from './processors/digest.processor.js';
 import { FeedService } from '../../server/src/feed/feed.service.js';
 
 async function bootstrap() {
@@ -70,6 +71,12 @@ async function bootstrap() {
     { connection: redis, concurrency: 2 }
   );
 
+  // 8. Weekly Digest Worker
+  const digestWorker = new Worker('digest', processWeeklyDigestJob, {
+    connection: redis,
+    concurrency: 1
+  });
+
   const workers = [
     fanoutWorker,
     mediaWorker,
@@ -77,7 +84,8 @@ async function bootstrap() {
     notificationWorker,
     emailWorker,
     trendingWorker,
-    rebuildWorker
+    rebuildWorker,
+    digestWorker
   ];
 
   logger.info({ msg: 'All BullMQ workers initialized and consuming queues.' });

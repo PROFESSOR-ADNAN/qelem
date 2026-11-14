@@ -200,4 +200,41 @@ export class PostsController {
       next(err);
     }
   }
+
+  static async search(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const q = (req.query.q as string || '').trim();
+      const tag = (req.query.tag as string || '').trim().toLowerCase();
+      const cohort = (req.query.cohort as string || '').trim();
+      const limit = Math.min(parseInt(req.query.limit as string || '20', 10), 50);
+
+      const query: Record<string, unknown> = { state: 'published' };
+
+      if (tag) {
+        query.tags = tag;
+      }
+
+      if (cohort) {
+        query.authorCohortId = cohort;
+      }
+
+      if (q) {
+        query.$or = [
+          { text: { $regex: q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' } },
+          { tags: { $regex: q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' } }
+        ];
+      }
+
+      const posts = await Post.find(query)
+        .sort({ publishedAt: -1, _id: -1 })
+        .limit(limit)
+        .populate('authorId', 'username displayName avatarMediaId cohortId university')
+        .populate('mediaIds')
+        .lean();
+
+      res.json({ items: posts, query: { q, tag, cohort } });
+    } catch (err) {
+      next(err);
+    }
+  }
 }

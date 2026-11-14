@@ -15,6 +15,7 @@ export interface IUser extends Document {
   university?: string | null;
   githubUrl?: string | null;
   telegramUsername?: string | null;
+  telegramChatId?: string | null;
   portfolioUrl?: string | null;
   role: UserRole;
   state: UserState;
@@ -108,6 +109,11 @@ const UserSchema = new Schema<IUser>(
       trim: true
     },
     telegramUsername: {
+      type: String,
+      default: null,
+      trim: true
+    },
+    telegramChatId: {
       type: String,
       default: null,
       trim: true

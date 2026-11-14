@@ -188,6 +188,9 @@ export class PostService {
       { jobId: `fanout:${postId}`, attempts: 5, backoff: { type: 'exponential', delay: 1000 } }
     );
 
+    // Invalidate cached explore feed
+    await redis.del('cache:feed:explore:default');
+
     // 5. Enqueue mention notifications (if any)
     if (post.mentions && post.mentions.length > 0) {
       for (const mentionedUserId of post.mentions) {

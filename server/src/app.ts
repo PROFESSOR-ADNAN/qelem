@@ -4,6 +4,8 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { randomUUID } from 'node:crypto';
 import promClient from 'prom-client';
+import mongoose from 'mongoose';
+import { redis } from './config/redis.js';
 import { env } from './config/env.js';
 import { errorHandler } from './middleware/error.js';
 import { authRouter } from './routes/auth.routes.js';
@@ -20,6 +22,7 @@ import { adminRouter } from './routes/admin.routes.js';
 import { shareRouter } from './routes/share.routes.js';
 import { accountRouter } from './routes/account.routes.js';
 import { paymentRouter } from './routes/payment.routes.js';
+import { swaggerController } from './docs/swagger.js';
 
 // Initialize Prometheus Default Metrics
 promClient.collectDefaultMetrics({ prefix: 'qelem_' });
@@ -32,11 +35,11 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'"],
-        styleSrc: ["'self'", "'unsafe-inline'"],
-        imgSrc: ["'self'", 'data:', 'blob:', env.MEDIA_CDN_URL],
+        scriptSrc: ["'self'", "'unsafe-inline'", 'https://unpkg.com'],
+        styleSrc: ["'self'", "'unsafe-inline'", 'https://unpkg.com'],
+        imgSrc: ["'self'", 'data:', 'blob:', 'https://validator.swagger.io', env.MEDIA_CDN_URL],
         connectSrc: ["'self'", env.API_BASE_URL, env.MEDIA_CDN_URL, env.S3_ENDPOINT || ''],
-        fontSrc: ["'self'"],
+        fontSrc: ["'self'", 'https://unpkg.com'],
         objectSrc: ["'none'"],
         frameAncestors: ["'none'"]
       }
@@ -86,15 +89,73 @@ app.use((req, res, next) => {
   next();
 });
 
-// Liveness & Readiness endpoints
-app.get(['/healthz', '/health'], (_req, res) => {
-  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+// Comprehensive Telemetry, Liveness & Readiness endpoints
+app.get(['/healthz', '/health'], async (_req, res) => {
+  const startTime = Date.now();
+  let mongoStatus = 'unknown';
+  let mongoLatencyMs = -1;
+  let redisStatus = 'unknown';
+  let redisLatencyMs = -1;
+
+  try {
+    const mongoStart = Date.now();
+    if (mongoose.connection.readyState === 1 && mongoose.connection.db) {
+      await mongoose.connection.db.admin().ping();
+      mongoStatus = 'connected';
+      mongoLatencyMs = Date.now() - mongoStart;
+    } else {
+      mongoStatus = `state_${mongoose.connection.readyState}`;
+    }
+  } catch (err: any) {
+    mongoStatus = `error: ${err.message}`;
+  }
+
+  try {
+    const redisStart = Date.now();
+    await redis.ping();
+    redisStatus = 'connected';
+    redisLatencyMs = Date.now() - redisStart;
+  } catch (err: any) {
+    redisStatus = `error: ${err.message}`;
+  }
+
+  const memory = process.memoryUsage();
+  const isHealthy = mongoStatus === 'connected' && redisStatus === 'connected';
+
+  res.status(isHealthy ? 200 : 503).json({
+    status: isHealthy ? 'healthy' : 'degraded',
+    service: 'qelem-api',
+    version: '1.0.0',
+    uptimeSeconds: Math.floor(process.uptime()),
+    timestamp: new Date().toISOString(),
+    checks: {
+      mongodb: {
+        status: mongoStatus,
+        latencyMs: mongoLatencyMs
+      },
+      redis: {
+        status: redisStatus,
+        latencyMs: redisLatencyMs
+      }
+    },
+    system: {
+      memoryRssMb: Math.round(memory.rss / (1024 * 1024)),
+      heapUsedMb: Math.round(memory.heapUsed / (1024 * 1024)),
+      heapTotalMb: Math.round(memory.heapTotal / (1024 * 1024)),
+      nodeVersion: process.version
+    },
+    totalCheckDurationMs: Date.now() - startTime
+  });
 });
 
 app.get('/metrics', async (_req, res) => {
   res.setHeader('Content-Type', promClient.register.contentType);
   res.send(await promClient.register.metrics());
 });
+
+// Interactive Swagger OpenAPI 3.0 Documentation
+app.get('/api-docs', swaggerController.getDocs);
+app.get('/api-docs/openapi.json', swaggerController.getSpec);
 
 // Mount API v1 Routes
 app.use('/api/v1/auth', authRouter);

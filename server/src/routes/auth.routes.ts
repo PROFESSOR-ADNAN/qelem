@@ -19,6 +19,9 @@ authRouter.post(
   AuthController.login
 );
 
+// Instant 1-Click Demo Guest Login for recruiters and portfolio visitors
+authRouter.post('/demo-login', AuthController.demoLogin);
+
 authRouter.post('/refresh', AuthController.refresh);
 authRouter.post('/logout', AuthController.logout);
 authRouter.post('/verify-email', AuthController.verifyEmail);

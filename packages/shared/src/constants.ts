@@ -93,3 +93,22 @@ export const DEFAULT_COHORTS = [
   { id: 'addiscoder-alumni', name: 'AddisCoder Alumni' },
   { id: 'independent', name: 'Independent / Self-Taught Dev' }
 ] as const;
+
+export const ETHIOPIAN_UNIVERSITIES = [
+  'Addis Ababa University (AAU)',
+  'Adama Science and Technology University (ASTU)',
+  'Addis Ababa Science and Technology University (AASTU)',
+  'Hawassa University',
+  'Bahir Dar University',
+  'Jimma University',
+  'Haramaya University',
+  'Mekelle University',
+  'Arba Minch University',
+  'Wollo University',
+  'Dilla University',
+  'Dire Dawa University',
+  'Debre Berhan University',
+  'University of Gondar',
+  'Self-Taught / Independent'
+] as const;
+

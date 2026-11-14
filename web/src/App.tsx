@@ -17,6 +17,7 @@ import { LoginPage } from './pages/LoginPage.js';
 import { RegisterPage } from './pages/RegisterPage.js';
 import { AdminPage } from './pages/AdminPage.js';
 import { VerifyEmailPage } from './pages/VerifyEmailPage.js';
+import { ArchitecturePage } from './pages/ArchitecturePage.js';
 import { initOutboxSync } from './offline/sync.js';
 import './i18n/index.js';
 
@@ -97,6 +98,7 @@ export const App: React.FC = () => {
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/register" element={<RegisterPage />} />
                   <Route path="/verify-email" element={<VerifyEmailPage />} />
+                  <Route path="/architecture" element={<ArchitecturePage />} />
                 </Routes>
               </main>
               <BottomNav />

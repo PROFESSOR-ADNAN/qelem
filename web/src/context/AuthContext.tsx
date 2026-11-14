@@ -8,6 +8,10 @@ interface User {
   email: string;
   role: string;
   cohortId?: string | null;
+  university?: string | null;
+  githubUrl?: string | null;
+  telegramUsername?: string | null;
+  portfolioUrl?: string | null;
   isEmailVerified: boolean;
   phone?: string | null;
   isPhoneVerified?: boolean;
@@ -20,6 +24,7 @@ interface AuthContextType {
   unreadCount: number;
   login: (creds: any) => Promise<void>;
   register: (data: any) => Promise<void>;
+  demoLogin: () => Promise<void>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -121,6 +126,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(res.user);
   };
 
+  const demoLogin = async () => {
+    const res = await apiFetch<{ user: User; accessToken: string; refreshToken?: string }>('/auth/demo-login', {
+      method: 'POST'
+    });
+    setAccessToken(res.accessToken, res.refreshToken);
+    setUser(res.user);
+  };
+
   const logout = async () => {
     try {
       await apiFetch('/auth/logout', { method: 'POST' });
@@ -130,7 +143,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, unreadCount, login, register, logout, refreshProfile }}>
+    <AuthContext.Provider value={{ user, loading, unreadCount, login, register, demoLogin, logout, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );

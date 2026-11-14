@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Compass, PlusSquare, Bell, Bookmark, Settings, ShieldAlert, LogOut, LogIn } from 'lucide-react';
+import { Home, Compass, PlusSquare, Bell, Bookmark, Settings, ShieldAlert, LogOut, LogIn, Cpu } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.js';
 import { useTheme } from '../context/ThemeContext.js';
 import { useTranslation } from 'react-i18next';
@@ -20,6 +20,7 @@ export const Navbar: React.FC = () => {
   const navItems = [
     { label: t('nav.home'), path: '/', icon: Home },
     { label: t('nav.explore'), path: '/explore', icon: Compass },
+    { label: 'Architecture', path: '/architecture', icon: Cpu },
     ...(user
       ? [
           { label: t('nav.compose'), path: '/compose', icon: PlusSquare },

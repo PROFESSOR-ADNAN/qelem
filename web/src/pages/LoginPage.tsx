@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.js';
-import { LogIn, AlertCircle } from 'lucide-react';
+import { LogIn, AlertCircle, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 export const LoginPage: React.FC = () => {
-  const { login } = useAuth();
+  const { login, demoLogin } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -40,6 +40,33 @@ export const LoginPage: React.FC = () => {
           </div>
           <h1 className="text-xl font-bold text-white">Log in to Qelem</h1>
           <p className="text-xs text-slate-400 mt-1">Devlog community for Ethiopian CS students</p>
+        </div>
+
+        {/* 1-Click Demo Guest Login */}
+        <div className="mb-6 p-3.5 rounded-xl bg-gradient-to-r from-indigo-950/70 to-purple-950/50 border border-indigo-500/30 text-center">
+          <p className="text-xs text-indigo-300 font-medium mb-2">
+            Portfolio Reviewer or Recruiter?
+          </p>
+          <button
+            type="button"
+            disabled={loading}
+            onClick={async () => {
+              setError(null);
+              setLoading(true);
+              try {
+                await demoLogin();
+                navigate('/');
+              } catch (err: any) {
+                setError(err.message || 'Demo login failed');
+              } finally {
+                setLoading(false);
+              }
+            }}
+            className="w-full py-2 px-3 rounded-lg text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white transition shadow flex items-center justify-center space-x-2"
+          >
+            <Sparkles className="w-4 h-4 text-amber-300" />
+            <span>🚀 1-Click Demo Login (AAU Student)</span>
+          </button>
         </div>
 
         {error && (

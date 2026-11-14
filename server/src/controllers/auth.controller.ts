@@ -425,4 +425,64 @@ export class AuthController {
       next(err);
     }
   }
+
+  static async demoLogin(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const demoEmail = 'demo.student@qelem.et';
+      let user = await User.findOne({ emailLower: demoEmail });
+
+      if (!user) {
+        const dummyPasswordHash = await AuthService.hashPassword('DemoStudent@2026!');
+        user = await User.create({
+          username: 'aau_guest_dev',
+          usernameLower: 'aau_guest_dev',
+          displayName: 'AAU Demo Dev (4-Kilo)',
+          email: demoEmail,
+          emailLower: demoEmail,
+          passwordHash: dummyPasswordHash,
+          role: 'user',
+          state: 'active',
+          isEmailVerified: true,
+          isPhoneVerified: true,
+          phone: '+251911000000',
+          cohortId: 'aau-cs',
+          university: 'Addis Ababa University (AAU)',
+          bio: 'Visiting CS student exploring open-source devlogs on Qelem 🇪🇹',
+          githubUrl: 'https://github.com/PROFESSOR-ADNAN',
+          telegramUsername: 'qelem_ethiopia',
+          portfolioUrl: 'https://qelem.vercel.app',
+          fanoutMode: 'normal'
+        });
+      }
+
+      const { accessToken, refreshToken } = await AuthService.createSession(
+        user,
+        req.headers['user-agent'],
+        req.ip
+      );
+
+      res.cookie(REFRESH_COOKIE_NAME, refreshToken, getCookieOptions());
+
+      res.status(200).json({
+        user: {
+          id: user._id,
+          username: user.username,
+          displayName: user.displayName,
+          email: user.email,
+          role: user.role,
+          cohortId: user.cohortId,
+          university: user.university,
+          githubUrl: user.githubUrl,
+          telegramUsername: user.telegramUsername,
+          portfolioUrl: user.portfolioUrl,
+          isEmailVerified: user.isEmailVerified,
+          isPhoneVerified: user.isPhoneVerified
+        },
+        accessToken,
+        refreshToken
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
 }

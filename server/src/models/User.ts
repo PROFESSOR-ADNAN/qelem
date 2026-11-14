@@ -12,6 +12,10 @@ export interface IUser extends Document {
   bio?: string;
   avatarMediaId?: Types.ObjectId | null;
   cohortId?: string | null;
+  university?: string | null;
+  githubUrl?: string | null;
+  telegramUsername?: string | null;
+  portfolioUrl?: string | null;
   role: UserRole;
   state: UserState;
   isEmailVerified: boolean;
@@ -91,6 +95,27 @@ const UserSchema = new Schema<IUser>(
       type: String,
       default: null,
       index: true
+    },
+    university: {
+      type: String,
+      default: null,
+      trim: true,
+      index: true
+    },
+    githubUrl: {
+      type: String,
+      default: null,
+      trim: true
+    },
+    telegramUsername: {
+      type: String,
+      default: null,
+      trim: true
+    },
+    portfolioUrl: {
+      type: String,
+      default: null,
+      trim: true
     },
     role: {
       type: String,
